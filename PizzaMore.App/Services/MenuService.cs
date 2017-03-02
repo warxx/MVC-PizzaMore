@@ -35,8 +35,6 @@ namespace PizzaMore.App.Services
 
         public PizzaViewModel GetAllPizzas(HttpSession session)
         {
-            var viewModels = new List<PizzaViewModel>();
-
             var pizzas = this.context.Pizzas.ToList();
             var viewModel = new PizzaViewModel();
             viewModel.Email = this.context.Logins.First(x => x.sessionId == session.Id).User.Email;
@@ -45,6 +43,73 @@ namespace PizzaMore.App.Services
             {    
                 viewModel.Pizzas.Add(pizza);
             }
+
+            return viewModel;
+        }
+
+        public PizzaViewModel GetUserPizzas(HttpSession session)
+        {
+            var user = this.context.Logins.First(x => x.sessionId == session.Id).User;
+            var pizzas = this.context.Pizzas.Where(x=>x.User.Id == user.Id).ToList();
+            var viewModel = new PizzaViewModel();
+            viewModel.Email = user.Email;
+
+            foreach (var pizza in pizzas)
+            {
+                viewModel.Pizzas.Add(pizza);
+            }
+
+            return viewModel;
+        }
+
+        public void DeletePizza(int pizzaId)
+        {
+            var pizza = this.context.Pizzas.Find(pizzaId);
+            this.context.Pizzas.Remove(pizza);
+            this.context.SaveChanges();
+        }
+
+        public bool IsPizzaUrlCorrect(int pizzaId, HttpSession session)
+        {
+            var pizza = this.context.Pizzas.Find(pizzaId);
+            var user = this.context.Logins.First(x => x.sessionId == session.Id).User;
+
+            if (pizza.User.Id == user.Id)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public void AddVoteForPizza(VotePizzaBindingModel model)
+        {
+            var pizza = this.context.Pizzas.Find(model.PizzaId);
+
+            if (model.PizzaVote == "Up")
+            {
+                pizza.UpVotes++;
+            }
+            else
+            {
+                pizza.DownVotes++;
+            }
+
+            this.context.SaveChanges();
+        }
+
+        public PizzaDetailsViewModel GetPizzaDetails(int pizzaId)
+        {
+            var pizza = this.context.Pizzas.Find(pizzaId);
+
+            var viewModel = new PizzaDetailsViewModel()
+            {
+                Title = pizza.Title,
+                Recipe = pizza.Recipe,
+                ImageUrl = pizza.ImageUrl,
+                UpVotes = pizza.UpVotes,
+                DownVotes = pizza.DownVotes
+            };
 
             return viewModel;
         }

@@ -34,6 +34,17 @@ namespace PizzaMore.App.Controllers
             return this.View(viewModel);
         }
 
+        [HttpPost]
+        public IActionResult Index(VotePizzaBindingModel model, HttpResponse response)
+        {
+            var service = new MenuService(Data.Data.Context);
+            
+            service.AddVoteForPizza(model);
+
+            this.Redirect(response, "/menu/index");
+            return null;
+        }
+
         [HttpGet]
         public IActionResult Add(HttpSession session, HttpResponse response)
         {
@@ -59,6 +70,72 @@ namespace PizzaMore.App.Controllers
 
             this.Redirect(response, "/menu/index");
             return null;
+        }
+
+
+        [HttpGet]
+        public IActionResult<PizzaViewModel> Suggestions(HttpSession session, HttpResponse response)
+        {
+            var user = AuthenticationManager.IsAuthenticated(session);
+            if (user == null)
+            {
+                this.Redirect(response, "/users/signin");
+                return null;
+            }
+
+            var service = new MenuService(Data.Data.Context);
+
+            var viewModel = service.GetUserPizzas(session);
+
+            return this.View(viewModel);
+        }
+
+        [HttpGet]
+        public IActionResult Delete(int pizzaId, HttpResponse response, HttpSession session)
+        {
+            var user = AuthenticationManager.IsAuthenticated(session);
+            if (user == null)
+            {
+                this.Redirect(response, "/users/signin");
+                return null;
+            }
+
+            var service = new MenuService(Data.Data.Context);
+
+            if (!service.IsPizzaUrlCorrect(pizzaId, session))
+            {
+                this.Redirect(response, "/menu/suggestions");
+                return null;
+            }
+
+            service.DeletePizza(pizzaId);
+
+            this.Redirect(response, "/menu/index");
+            return null;
+        }
+
+        [HttpGet]
+        public IActionResult<PizzaDetailsViewModel> Details(int pizzaId, HttpResponse response, HttpSession session)
+        {
+            var user = AuthenticationManager.IsAuthenticated(session);
+            if (user == null)
+            {
+                this.Redirect(response, "/users/signin");
+                return null;
+            }
+
+            var pizza = Data.Data.Context.Pizzas.Find(pizzaId);
+            if (pizza == null)
+            {
+                this.Redirect(response, "/menu/index");
+                return null;
+            }
+
+            var service = new MenuService(Data.Data.Context);
+
+            var viewModel = service.GetPizzaDetails(pizzaId);
+
+            return this.View(viewModel);
         }
     }
 }

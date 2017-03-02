@@ -10,13 +10,15 @@ using SimpleMVC.Interfaces.Generic;
 
 namespace PizzaMore.App.Views.Menu
 {
-    public class Index : IRenderable<PizzaViewModel>
+    public class Suggestions : IRenderable<PizzaViewModel>
     {
         public string Render()
         {
-            string content = File.ReadAllText("../../content/menu.html");
+            string topContent = File.ReadAllText("../../content/yoursuggestions-top.html");
+            string bottomContent = File.ReadAllText("../../content/yoursuggestions-bottom.html");
 
             var sb = new StringBuilder();
+            sb.AppendLine(topContent);
             sb.Append($"<p class=\"navbar-text navbar-right\">Signed in as {Model.Email}</p>\r\n" +
                       "</ul>\r\n" +
                       "</div>\r\n" +
@@ -34,22 +36,20 @@ namespace PizzaMore.App.Views.Menu
                           "<div class=\"card-block\">\r\n" +
                           $"<h4 class=\"card-title\">{pizza.Title}</h4>\r\n" +
                           $"<p class=\"card-text\"><a href=\"/menu/details?pizzaId={pizza.Id}\">Recipe</a></p>\r\n" +
-                          "<form method=\"POST\">\r\n" +
-                          "<div class=\"radio\"><label><input type = \"radio\" name=\"PizzaVote\" value=\"Up\">Up</label></div>\r\n" +
-                          "<div class=\"radio\"><label><input type = \"radio\" name=\"PizzaVote\" value=\"Down\">Down</label></div>\r\n" +
-                          $"<input type=\"hidden\" name=\"PizzaId\" value=\"{pizza.Id}\" />\r\n" +
-                          "<input type=\"submit\" class=\"btn btn-primary\" value=\"Vote\" />\r\n" +
+                          $"<p class=\"card-text\">Up: {pizza.UpVotes}</p>\r\n" +
+                          $"<p class=\"card-text\">Down: {pizza.DownVotes}</p>\r\n" +
+                          $"<a class=\"btn btn-danger\" href=\"/menu/delete?pizzaId={pizza.Id}\">Delete</a>\r\n" +
                           "</form>\r\n" +
                           "</div>\r\n" +
                           "</div>\r\n" +
                           "</div>\r\n" +
-                          "</div>");
+                          "</div>\r\n");
             }
 
-            return string.Format(content, sb);
+            sb.Append(bottomContent);
+            return sb.ToString();
         }
 
         public PizzaViewModel Model { get; set; }
-        
     }
 }
